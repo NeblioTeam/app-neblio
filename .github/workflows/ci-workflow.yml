@@ -16,7 +16,7 @@ jobs:
 
       - name: Build
         run: |
-          make && mv bin/ bitcoin-bin/
+          make COIN=peercoin && mv bin/ bitcoin-bin/
           make clean
           make COIN=bitcoin_testnet_legacy && mv bin/ bitcoin-testnet-bin/
 
