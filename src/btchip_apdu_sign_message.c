@@ -15,6 +15,7 @@
 *  limitations under the License.
 ********************************************************************************/
 
+#include <string.h>  // memset, memmove
 #include "btchip_internal.h"
 #include "btchip_apdu_constants.h"
 #include "btchip_bagl_extensions.h"
@@ -29,20 +30,12 @@
 #define BITID_POWERCYCLE 1
 #define BITID_MULTIPLE 2
 
-//#define SLIP_13 0x8000000D
-
 unsigned short btchip_compute_hash(void);
 
 unsigned char checkBitId(unsigned char *bip32Path) {
     unsigned char i;
     unsigned char bip32PathLength = bip32Path[0];
     bip32Path++;
-    /*
-    if ((bip32PathLength != 0) && (btchip_read_u32(bip32Path, 1, 0) == SLIP_13))
-    {
-        return BITID_MULTIPLE;
-    }
-    */
     for (i = 0; i < bip32PathLength; i++) {
         unsigned short account = btchip_read_u32(bip32Path, 1, 0);
         bip32Path += 4;
@@ -86,8 +79,9 @@ unsigned short btchip_apdu_sign_message_internal() {
                     unsigned char chunkLength;
                     unsigned char messageLength[3];
                     unsigned char messageLengthSize;
-                    os_memset(&btchip_context_D.transactionSummary, 0,
+                    memset(&btchip_context_D.transactionSummary, 0,
                               sizeof(btchip_transaction_summary_t));
+                    // Check for BIP32 path validity
                     if (G_io_apdu_buffer[offset] > MAX_BIP32_PATH) {
                         PRINTF("Invalid path\n");
                         sw = BTCHIP_SW_INCORRECT_DATA;
@@ -98,7 +92,7 @@ unsigned short btchip_apdu_sign_message_internal() {
                         G_coin_config->p2pkh_version;
                     btchip_context_D.transactionSummary.payToScriptHashVersion =
                         G_coin_config->p2sh_version;
-                    os_memmove(
+                    memmove(
                         btchip_context_D.transactionSummary.keyPath,
                         G_io_apdu_buffer + offset, MAX_BIP32_PATH_LENGTH);
                     offset += (4 * G_io_apdu_buffer[offset]) + 1;
@@ -112,6 +106,7 @@ unsigned short btchip_apdu_sign_message_internal() {
                             (G_io_apdu_buffer[offset + 1]);
                         offset += 2;
                     }
+                    // Check if message length is 0
                     if (btchip_context_D.transactionSummary.messageLength ==
                         0) {
                         PRINTF("Null message length\n");
@@ -151,6 +146,8 @@ unsigned short btchip_apdu_sign_message_internal() {
                     cx_hash(&btchip_context_D.transactionHashFull.sha256.header, 0,
                             messageLength, messageLengthSize, NULL, 0);
                     chunkLength = apduLength - (offset - ISO_OFFSET_CDATA);
+                    
+                    // Check the length of the data
                     if ((btchip_context_D.hashedMessageLength + chunkLength) >
                         btchip_context_D.transactionSummary.messageLength) {
                         PRINTF("Invalid data length\n");
@@ -173,6 +170,7 @@ unsigned short btchip_apdu_sign_message_internal() {
                         btchip_context_D.outLength = 1;
                     }
                 } else {
+                    // Check data length
                     if ((btchip_context_D.hashedMessageLength + apduLength) >
                         btchip_context_D.transactionSummary.messageLength) {
                         PRINTF("Invalid data length\n");
@@ -196,6 +194,7 @@ unsigned short btchip_apdu_sign_message_internal() {
                     }
                 }
             } else {
+                // Check for the message length
                 if ((btchip_context_D.transactionSummary.messageLength == 0) ||
                     (btchip_context_D.hashedMessageLength !=
                      btchip_context_D.transactionSummary.messageLength)) {
@@ -217,7 +216,7 @@ unsigned short btchip_apdu_sign_message_internal() {
             sw = SW_TECHNICAL_DETAILS(0x0F);
         }
     discard : {
-        os_memset(&btchip_context_D.transactionSummary, 0,
+        memset(&btchip_context_D.transactionSummary, 0,
                   sizeof(btchip_transaction_summary_t));
     }
         FINALLY {
@@ -265,7 +264,7 @@ unsigned short btchip_compute_hash() {
             sw = SW_TECHNICAL_DETAILS(0x0F);
         }
         FINALLY {
-            os_memset(&btchip_context_D.transactionSummary, 0,
+            memset(&btchip_context_D.transactionSummary, 0,
                       sizeof(btchip_transaction_summary_t));
         }
     }

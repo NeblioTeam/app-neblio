@@ -29,12 +29,9 @@ unsigned short btchip_apdu_get_operation_mode() {
         return BTCHIP_SW_CONDITIONS_OF_USE_NOT_SATISFIED;
     }
 
-    switch (G_io_apdu_buffer[ISO_OFFSET_P1]) {
-    case P1_GET_OPERATION_MODE:
+    if (G_io_apdu_buffer[ISO_OFFSET_P1] == P1_GET_OPERATION_MODE) {
         G_io_apdu_buffer[0] = SB_GET(N_btchip.bkp.config.operationMode);
-        break;
-
-    default:
+    } else {
         return BTCHIP_SW_INCORRECT_P1_P2;
     }
 

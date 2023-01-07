@@ -15,6 +15,8 @@
 *  limitations under the License.
 ********************************************************************************/
 
+#include <string.h>  // memset
+
 #include "btchip_internal.h"
 #include "btchip_apdu_constants.h"
 #include "btchip_bagl_extensions.h"
@@ -110,7 +112,7 @@ unsigned short btchip_apdu_hash_input_start() {
             btchip_context_D.segwitParsedOnce = 0;
             btchip_set_check_internal_structure_integrity(1);
             // Initialize for screen pairing
-            os_memset(&btchip_context_D.tmpCtx.output, 0,
+            memset(&btchip_context_D.tmpCtx.output, 0,
                       sizeof(btchip_context_D.tmpCtx.output));
             btchip_context_D.tmpCtx.output.changeAccepted = 1;
             // Reset segwitWarningSeen flag to prevent displaying the warning for each

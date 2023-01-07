@@ -1,3 +1,4 @@
+#include <string.h>  // memcpy
 #include "handle_check_address.h"
 #include "os.h"
 #include "btchip_helpers.h"
@@ -32,7 +33,7 @@ bool derive_compressed_public_key(
 
     cx_ecfp_generate_pair(BTCHIP_CURVE, &pubKey, &privKey, 1);
     btchip_compress_public_key_value(pubKey.W);
-    os_memcpy(public_key, pubKey.W, 33);
+    memcpy(public_key, pubKey.W, public_key_length);
     return true;
 }
 

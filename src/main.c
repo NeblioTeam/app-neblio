@@ -15,6 +15,8 @@
  *  limitations under the License.
  ********************************************************************************/
 
+#include <string.h>  // memset, memmove, memcmp
+
 #include "os.h"
 #include "cx.h"
 
@@ -48,7 +50,7 @@ void ui_idle(void);
 ux_state_t G_ux;
 bolos_ux_params_t G_ux_params;
 
-unsigned int io_seproxyhal_touch_verify_cancel(const bagl_element_t *e) {
+unsigned int io_seproxyhal_touch_verify_cancel() {
     // user denied the transaction, tell the USB side
     if (!btchip_bagl_user_action(0)) {
         // redraw ui
@@ -57,7 +59,7 @@ unsigned int io_seproxyhal_touch_verify_cancel(const bagl_element_t *e) {
     return 0; // DO NOT REDRAW THE BUTTON
 }
 
-unsigned int io_seproxyhal_touch_verify_ok(const bagl_element_t *e) {
+unsigned int io_seproxyhal_touch_verify_ok() {
     // user accepted the transaction, tell the USB side
     if (!btchip_bagl_user_action(1)) {
         // redraw ui
@@ -67,7 +69,7 @@ unsigned int io_seproxyhal_touch_verify_ok(const bagl_element_t *e) {
 }
 
 unsigned int
-io_seproxyhal_touch_message_signature_verify_cancel(const bagl_element_t *e) {
+io_seproxyhal_touch_message_signature_verify_cancel() {
     // user denied the transaction, tell the USB side
     btchip_bagl_user_action_message_signing(0);
     // redraw ui
@@ -76,7 +78,7 @@ io_seproxyhal_touch_message_signature_verify_cancel(const bagl_element_t *e) {
 }
 
 unsigned int
-io_seproxyhal_touch_message_signature_verify_ok(const bagl_element_t *e) {
+io_seproxyhal_touch_message_signature_verify_ok() {
     // user accepted the transaction, tell the USB side
     btchip_bagl_user_action_message_signing(1);
     // redraw ui
@@ -84,7 +86,7 @@ io_seproxyhal_touch_message_signature_verify_ok(const bagl_element_t *e) {
     return 0; // DO NOT REDRAW THE BUTTON
 }
 
-unsigned int io_seproxyhal_touch_display_cancel(const bagl_element_t *e) {
+unsigned int io_seproxyhal_touch_display_cancel() {
     // user denied the transaction, tell the USB side
     btchip_bagl_user_action_display(0);
     // redraw ui
@@ -92,7 +94,7 @@ unsigned int io_seproxyhal_touch_display_cancel(const bagl_element_t *e) {
     return 0; // DO NOT REDRAW THE BUTTON
 }
 
-unsigned int io_seproxyhal_touch_display_ok(const bagl_element_t *e) {
+unsigned int io_seproxyhal_touch_display_ok() {
     // user accepted the transaction, tell the USB side
     btchip_bagl_user_action_display(1);
     // redraw ui
@@ -100,7 +102,7 @@ unsigned int io_seproxyhal_touch_display_ok(const bagl_element_t *e) {
     return 0; // DO NOT REDRAW THE BUTTON
 }
 
-unsigned int io_seproxyhal_touch_sign_cancel(const bagl_element_t *e) {
+unsigned int io_seproxyhal_touch_sign_cancel() {
     // user denied the transaction, tell the USB side
     btchip_bagl_user_action_signtx(0, 0);
     // redraw ui
@@ -108,7 +110,7 @@ unsigned int io_seproxyhal_touch_sign_cancel(const bagl_element_t *e) {
     return 0; // DO NOT REDRAW THE BUTTON
 }
 
-unsigned int io_seproxyhal_touch_sign_ok(const bagl_element_t *e) {
+unsigned int io_seproxyhal_touch_sign_ok() {
     // user accepted the transaction, tell the USB side
     btchip_bagl_user_action_signtx(1, 0);
     // redraw ui
@@ -117,7 +119,7 @@ unsigned int io_seproxyhal_touch_sign_ok(const bagl_element_t *e) {
 }
 
 
-unsigned int io_seproxyhal_touch_display_token_cancel(const bagl_element_t *e) {
+unsigned int io_seproxyhal_touch_display_token_cancel() {
     // revoke previous valid token if there was one
     btchip_context_D.has_valid_token = false;
     // user denied the token, tell the USB side
@@ -127,7 +129,7 @@ unsigned int io_seproxyhal_touch_display_token_cancel(const bagl_element_t *e) {
     return 0; // DO NOT REDRAW THE BUTTON
 }
 
-unsigned int io_seproxyhal_touch_display_token_ok(const bagl_element_t *e) {
+unsigned int io_seproxyhal_touch_display_token_ok() {
     // Set the valid token flag
     btchip_context_D.has_valid_token = true;
     // user approved the token, tell the USB side
@@ -190,11 +192,9 @@ const char* settings_submenu_getter(unsigned int idx) {
 }
 
 void settings_submenu_selector(unsigned int idx) {
-  switch(idx) {
-    case 0:
+  if (idx == 0) {
       ux_menulist_init_select(0, settings_pubkey_export_getter, settings_pubkey_export_selector, N_btchip.pubKeyRequestRestriction);
-      break;
-    default:
+  } else {
       ui_idle();
   }
 }
@@ -257,7 +257,7 @@ UX_STEP_NOCB(
 UX_STEP_CB(
     ux_sign_flow_3_step,
     pbb,
-    io_seproxyhal_touch_message_signature_verify_ok(NULL),
+    io_seproxyhal_touch_message_signature_verify_ok(),
     {
       &C_icon_validate_14,
       "Sign",
@@ -266,7 +266,7 @@ UX_STEP_CB(
 UX_STEP_CB(
     ux_sign_flow_4_step,
     pbb,
-    io_seproxyhal_touch_message_signature_verify_cancel(NULL),
+    io_seproxyhal_touch_message_signature_verify_cancel(),
     {
       &C_icon_crossmark,
       "Cancel",
@@ -313,7 +313,7 @@ UX_STEP_NOCB(
 UX_STEP_CB(
     ux_confirm_full_flow_5_step,
     pbb,
-    io_seproxyhal_touch_verify_ok(NULL),
+    io_seproxyhal_touch_verify_ok(),
     {
       &C_icon_validate_14,
       "Accept",
@@ -322,7 +322,7 @@ UX_STEP_CB(
 UX_STEP_CB(
     ux_confirm_full_flow_6_step,
     pb,
-    io_seproxyhal_touch_verify_cancel(NULL),
+    io_seproxyhal_touch_verify_cancel(),
     {
       &C_icon_crossmark,
       "Reject",
@@ -364,7 +364,7 @@ UX_STEP_NOCB(
 UX_STEP_CB(
     ux_confirm_single_flow_5_step,
     pb,
-    io_seproxyhal_touch_verify_ok(NULL),
+    io_seproxyhal_touch_verify_ok(),
     {
       &C_icon_validate_14,
       "Accept",
@@ -372,7 +372,7 @@ UX_STEP_CB(
 UX_STEP_CB(
     ux_confirm_single_flow_6_step,
     pb,
-    io_seproxyhal_touch_verify_cancel(NULL),
+    io_seproxyhal_touch_verify_cancel(),
     {
       &C_icon_crossmark,
       "Reject",
@@ -406,7 +406,7 @@ UX_STEP_NOCB(
 UX_STEP_CB(
     ux_finalize_flow_5_step,
     pbb,
-    io_seproxyhal_touch_verify_ok(NULL),
+    io_seproxyhal_touch_verify_ok(),
     {
       &C_icon_validate_14,
       "Accept",
@@ -415,7 +415,7 @@ UX_STEP_CB(
 UX_STEP_CB(
     ux_finalize_flow_6_step,
     pb,
-    io_seproxyhal_touch_verify_cancel(NULL),
+    io_seproxyhal_touch_verify_cancel(),
     {
       &C_icon_crossmark,
       "Reject",
@@ -447,7 +447,7 @@ UX_STEP_NOCB(
 UX_STEP_CB(
     ux_display_public_flow_3_step,
     pnn,
-    io_seproxyhal_touch_display_cancel(NULL),
+    io_seproxyhal_touch_display_cancel(),
     {
       &C_icon_crossmark,
       "Reject if you're",
@@ -471,7 +471,7 @@ UX_STEP_NOCB(
 UX_STEP_CB(
     ux_display_public_flow_6_step,
     pb,
-    io_seproxyhal_touch_display_ok(NULL),
+    io_seproxyhal_touch_display_ok(),
     {
       &C_icon_validate_14,
       "Approve",
@@ -479,7 +479,7 @@ UX_STEP_CB(
 UX_STEP_CB(
     ux_display_public_flow_7_step,
     pb,
-    io_seproxyhal_touch_display_cancel(NULL),
+    io_seproxyhal_touch_display_cancel(),
     {
       &C_icon_crossmark,
       "Reject",
@@ -507,7 +507,7 @@ UX_FLOW(ux_display_public_flow,
 UX_STEP_CB(
     ux_display_token_flow_1_step,
     pbb,
-    io_seproxyhal_touch_display_ok(NULL),
+    io_seproxyhal_touch_display_ok(),
     {
       &C_icon_validate_14,
       "Confirm token",
@@ -516,7 +516,7 @@ UX_STEP_CB(
 UX_STEP_CB(
     ux_display_token_flow_2_step,
     pb,
-    io_seproxyhal_touch_display_cancel(NULL),
+    io_seproxyhal_touch_display_cancel(),
     {
       &C_icon_crossmark,
       "Reject",
@@ -531,7 +531,7 @@ UX_FLOW(ux_display_token_flow,
 UX_STEP_CB(
     ux_request_pubkey_approval_flow_1_step,
     pbb,
-    io_seproxyhal_touch_display_ok(NULL),
+    io_seproxyhal_touch_display_ok(),
     {
       &C_icon_validate_14,
       "Export",
@@ -540,7 +540,7 @@ UX_STEP_CB(
 UX_STEP_CB(
     ux_request_pubkey_approval_flow_2_step,
     pb,
-    io_seproxyhal_touch_display_cancel(NULL),
+    io_seproxyhal_touch_display_cancel(),
     {
       &C_icon_crossmark,
       "Reject",
@@ -570,7 +570,7 @@ UX_STEP_NOCB(
 UX_STEP_CB(
     ux_request_change_path_approval_flow_3_step,
     pbb,
-    io_seproxyhal_touch_display_cancel(NULL),
+    io_seproxyhal_touch_display_cancel(),
     {
       &C_icon_crossmark,
       "Reject if you're",
@@ -579,7 +579,7 @@ UX_STEP_CB(
 UX_STEP_CB(
     ux_request_change_path_approval_flow_4_step,
     pb,
-    io_seproxyhal_touch_display_ok(NULL),
+    io_seproxyhal_touch_display_ok(),
     {
       &C_icon_validate_14,
       "Approve",
@@ -611,7 +611,7 @@ UX_STEP_NOCB(
 UX_STEP_CB(
     ux_request_sign_path_approval_flow_3_step,
     pbb,
-    io_seproxyhal_touch_sign_cancel(NULL),
+    io_seproxyhal_touch_sign_cancel(),
     {
       &C_icon_crossmark,
       "Reject if you're",
@@ -620,7 +620,7 @@ UX_STEP_CB(
 UX_STEP_CB(
     ux_request_sign_path_approval_flow_4_step,
     pb,
-    io_seproxyhal_touch_sign_ok(NULL),
+    io_seproxyhal_touch_sign_ok(),
     {
       &C_icon_validate_14,
       "Approve",
@@ -660,7 +660,7 @@ UX_STEP_NOCB(
 UX_STEP_CB(
     ux_request_segwit_input_approval_flow_4_step,
     pb,
-    io_seproxyhal_touch_display_cancel(NULL),
+    io_seproxyhal_touch_display_cancel(),
     {
       .icon = &C_icon_crossmark,
       .line1 = "Cancel"
@@ -668,7 +668,7 @@ UX_STEP_CB(
 UX_STEP_CB(
     ux_request_segwit_input_approval_flow_5_step,
     pb,
-    io_seproxyhal_touch_display_ok(NULL),
+    io_seproxyhal_touch_display_ok(),
     {
       &C_icon_validate_14,
       "Continue"
@@ -725,6 +725,8 @@ unsigned short io_exchange_al(unsigned char channel, unsigned short tx_len) {
 }
 
 unsigned char io_event(unsigned char channel) {
+    UNUSED(channel);
+    
     // nothing done with the event, throw an error on the transport layer if
     // needed
 
@@ -802,7 +804,7 @@ uint8_t check_fee_swap() {
 
 uint8_t prepare_fees() {
     if (btchip_context_D.transactionContext.relaxed) {
-        os_memmove(vars.tmp.feesAmount, "UNKNOWN", 7);
+        memmove(vars.tmp.feesAmount, "UNKNOWN", 7);
         vars.tmp.feesAmount[7] = '\0';
     } else {
         unsigned char fees[8];
@@ -813,7 +815,7 @@ uint8_t prepare_fees() {
                 fees, btchip_context_D.transactionContext.transactionAmount,
                 btchip_context_D.totalOutputAmount);
         if (borrow && G_coin_config->kind == COIN_KIND_KOMODO) {
-            os_memmove(vars.tmp.feesAmount, "REWARD", 6);
+            memmove(vars.tmp.feesAmount, "REWARD", 6);
             vars.tmp.feesAmount[6] = '\0';
         }
         else {
@@ -821,7 +823,7 @@ uint8_t prepare_fees() {
                 PRINTF("Error : Fees not consistent");
                 goto error;
             }
-            os_memmove(vars.tmp.feesAmount, G_coin_config->name_short,
+            memmove(vars.tmp.feesAmount, G_coin_config->name_short,
                        strlen(G_coin_config->name_short));
             vars.tmp.feesAmount[strlen(G_coin_config->name_short)] = ' ';
             btchip_context_D.tmp =
@@ -843,17 +845,17 @@ error:
 
 void get_address_from_output_script(unsigned char* script, int script_size, char* out, int out_size) {
     if (btchip_output_script_is_op_return(script)) {
-        strcpy(out, "OP_RETURN");
+        strlcpy(out, "OP_RETURN", out_size);
         return;
     }
     if ((G_coin_config->kind == COIN_KIND_QTUM || G_coin_config->kind == COIN_KIND_HYDRA) &&
         btchip_output_script_is_op_create(script, script_size)) {
-        strcpy(out, "OP_CREATE");
+        strlcpy(out, "OP_CREATE", out_size);
         return;
     }
     if ((G_coin_config->kind == COIN_KIND_QTUM || G_coin_config->kind == COIN_KIND_HYDRA) &&
         btchip_output_script_is_op_call(script, script_size)) {
-        strcpy(out, "OP_CALL");
+        strlcpy(out, "OP_CALL", out_size);
         return;
     }
     if (btchip_output_script_is_native_witness(script)) {
@@ -884,7 +886,7 @@ void get_address_from_output_script(unsigned char* script, int script_size, char
         versionSize = 1;
         address[0] = version;
     }
-    os_memmove(address + versionSize, script + addressOffset, 20);
+    memmove(address + versionSize, script + addressOffset, 20);
 
     // Prepare address
     if (btchip_context_D.usingCashAddr) {
@@ -918,8 +920,8 @@ uint8_t prepare_single_output() {
 
     // Handle Omni simple send
     if ((btchip_context_D.currentOutput[offset + 2] == 0x14) &&
-        (os_memcmp(btchip_context_D.currentOutput + offset + 3, "omni", 4) == 0) &&
-        (os_memcmp(btchip_context_D.currentOutput + offset + 3 + 4, "\0\0\0\0", 4) == 0)) {
+        (memcmp(btchip_context_D.currentOutput + offset + 3, "omni", 4) == 0) &&
+        (memcmp(btchip_context_D.currentOutput + offset + 3 + 4, "\0\0\0\0", 4) == 0)) {
             uint8_t headerLength;
             uint32_t omniAssetId = btchip_read_u32(btchip_context_D.currentOutput + offset + 3 + 4 + 4, 1, 0);
             switch(omniAssetId) {
@@ -942,7 +944,7 @@ uint8_t prepare_single_output() {
             vars.tmp.fullAmount[textSize + headerLength] = '\0';
     }
     else {
-        os_memmove(vars.tmp.fullAmount, G_coin_config->name_short,
+        memmove(vars.tmp.fullAmount, G_coin_config->name_short,
                strlen(G_coin_config->name_short));
         vars.tmp.fullAmount[strlen(G_coin_config->name_short)] = ' ';
         btchip_context_D.tmp =
@@ -1003,7 +1005,7 @@ unsigned int btchip_silent_confirm_single_output() {
                 break;
         }
 
-        os_memmove(btchip_context_D.currentOutput,
+        memmove(btchip_context_D.currentOutput,
                     btchip_context_D.currentOutput +
                         btchip_context_D.discardSize,
                     btchip_context_D.currentOutputOffset -
@@ -1101,7 +1103,7 @@ uint8_t set_key_path_to_display(unsigned char* keyPath) {
 
 void btchip_bagl_display_public_key(uint8_t is_derivation_path_unusual) {
     // append a white space at the end of the address to avoid glitch on nano S
-    strcat((char *)G_io_apdu_buffer + 200, " ");
+    strlcat((char *)G_io_apdu_buffer + 200, " ", 1);
 
     ux_flow_init(0, is_derivation_path_unusual?ux_display_public_with_warning_flow:ux_display_public_flow, NULL);
 }
@@ -1147,7 +1149,7 @@ void app_exit(void) {
 }
 
 void init_coin_config(btchip_altcoin_config_t *coin_config) {
-    os_memset(coin_config, 0, sizeof(btchip_altcoin_config_t));
+    memset(coin_config, 0, sizeof(btchip_altcoin_config_t));
     coin_config->bip44_coin_type = BIP44_COIN_TYPE;
     coin_config->bip44_coin_type2 = BIP44_COIN_TYPE_2;
     coin_config->p2pkh_version = COIN_P2PKH_VERSION;
@@ -1264,6 +1266,7 @@ static void library_main_helper(struct libargs_s *args) {
     }
 }
 
+
 void library_main(struct libargs_s *args) {
     btchip_altcoin_config_t coin_config;
     if (args->coin_config == NULL) {
@@ -1338,15 +1341,13 @@ __attribute__((section(".boot"))) int main(int arg0) {
         app_exit();
         return 0;
     }
-    switch (args->command) {
-        case RUN_APPLICATION:
+    if (args->command == RUN_APPLICATION) {
             // coin application launched from dashboard
             if (args->coin_config == NULL)
                 app_exit();
             else
                 coin_main(args->coin_config);
-            break;
-        default:
+    } else {
             // called as bitcoin or altcoin library
             library_main(args);
     }

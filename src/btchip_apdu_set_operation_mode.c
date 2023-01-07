@@ -43,9 +43,6 @@ unsigned short btchip_apdu_set_operation_mode() {
     }
     operationMode = G_io_apdu_buffer[ISO_OFFSET_CDATA];
 
-    if (operationMode == BTCHIP_MODE_WALLET) {
-    }
-
     if (operationMode == SB_GET(N_btchip.bkp.config.operationMode)) {
         return BTCHIP_SW_OK;
     }
