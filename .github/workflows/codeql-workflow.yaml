@@ -14,6 +14,8 @@ on:
 jobs:
   analyse:
     name: CodeQL Analyse of boilerplate application
+    permissions:
+      security-events: write
     strategy: 
       matrix:
         include:
