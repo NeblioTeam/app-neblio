@@ -210,7 +210,7 @@ LedgerBtc.prototype.getTrustedInput_async = function(indexLookup, transaction) {
 			}
 		);          	
 	}
-	var data = Buffer.concat([transaction['version'], currentObject.createVarint(transaction['inputs'].length)]);
+	var data = Buffer.concat([transaction['version'], transaction['time'], currentObject.createVarint(transaction['inputs'].length)]);
 	currentObject.getTrustedInputRaw_async(true, indexLookup, data).then(function (result) {
 		processInputs();
 	}).fail(function (err) { deferred.reject(err); });
@@ -244,7 +244,7 @@ LedgerBtc.prototype.startUntrustedHashTransactionInputRaw_async = function (newT
 
 LedgerBtc.prototype.startUntrustedHashTransactionInput_async = function (newTransaction, transaction, inputs) {
 	var currentObject = this;
-	var data = Buffer.concat([transaction['version'],
+	var data = Buffer.concat([transaction['version'], transaction['time'],
 	currentObject.createVarint(transaction['inputs'].length)]);
 	var deferred = Q.defer();
 	currentObject.startUntrustedHashTransactionInputRaw_async(newTransaction, true, data).then(function (result) {
@@ -386,6 +386,8 @@ LedgerBtc.prototype.createPaymentTransactionNew_async = function(inputs, associa
 	var nullScript = Buffer.alloc(0);
 	var defaultVersion = Buffer.alloc(4);	
 	defaultVersion.writeUInt32LE(1, 0);
+	var currentTime = Buffer.alloc(4);	
+	currentTime.writeUInt32LE(Math.floor(Date.now() / 1000), 0);
 	var trustedInputs = [];
 	var regularOutputs = [];
 	var signatures = [];
@@ -421,6 +423,7 @@ LedgerBtc.prototype.createPaymentTransactionNew_async = function(inputs, associa
 	}).then(function () {
 		// Pre-build the target transaction
 		targetTransaction['version'] = defaultVersion;
+		targetTransaction['time'] = currentTime;
 		targetTransaction['inputs'] = [];
 
 		for (var i = 0; i < inputs.length; i++) {
@@ -514,6 +517,8 @@ LedgerBtc.prototype.signP2SHTransaction_async = function(inputs, associatedKeyse
 	var nullScript = Buffer.alloc(0);
 	var defaultVersion = Buffer.alloc(4);	
 	defaultVersion.writeUInt32LE(1, 0);
+	var currentTime = Buffer.alloc(4);	
+	currentTime.writeUInt32LE(Math.floor(Date.now() / 1000), 0);
 	var trustedInputs = [];
 	var regularOutputs = [];
 	var signatures = [];
@@ -549,6 +554,7 @@ LedgerBtc.prototype.signP2SHTransaction_async = function(inputs, associatedKeyse
 	}).then(function () {
 		// Pre-build the target transaction
 		targetTransaction['version'] = defaultVersion;
+		targetTransaction['time'] = currentTime;
 		targetTransaction['inputs'] = [];
 
 		for (var i = 0; i < inputs.length; i++) {
@@ -640,6 +646,8 @@ LedgerBtc.prototype.splitTransaction = function(transaction) {
 	var transaction = Buffer.from(transaction, 'hex');
 	var version = transaction.slice(offset, offset + 4);
 	offset += 4;
+	var time = transaction.slice(offset, offset + 4);
+	offset += 4;
 	var varint = this.getVarint(transaction, offset);
 	var numberInputs = varint[0];
 	offset += varint[1];
@@ -670,6 +678,7 @@ LedgerBtc.prototype.splitTransaction = function(transaction) {
 	}
 	var locktime = transaction.slice(offset, offset + 4);
 	result['version'] = version;
+	result['time'] = time;
 	result['inputs'] = inputs;
 	result['outputs'] = outputs;
 	result['locktime'] = locktime;
@@ -702,6 +711,7 @@ LedgerBtc.prototype.serializeTransaction = function (transaction) {
 
 	return Buffer.concat([
 		transaction['version'],
+		transaction['time'],
 		self.createVarint(transaction['inputs'].length),
 		inputBuffer,
 		outputBuffer]);
@@ -709,6 +719,7 @@ LedgerBtc.prototype.serializeTransaction = function (transaction) {
 
 LedgerBtc.prototype.displayTransactionDebug = function(transaction) {
 	console.log("version " + transaction['version'].toString('hex'));
+	console.log("time " + transaction['time'].toString('hex'));
 	for (var i=0; i<transaction['inputs'].length; i++) {
 		var input = transaction['inputs'][i];
 		console.log("input " + i + " prevout " + input['prevout'].toString('hex') + " script " + input['script'].toString('hex') + " sequence " + input['sequence'].toString('hex')); 
