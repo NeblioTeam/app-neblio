@@ -34,7 +34,7 @@ def device(request, hid):
 
     base_args = [
         speculos_executable, "./bitcoin-bin/app.elf",
-        "-l", "Neblio:./bitcoin-bin/app.elf",
+        "--model", "nanos",
         "--sdk", "2.0",
         "--display", "headless"
     ]

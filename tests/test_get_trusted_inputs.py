@@ -8,6 +8,8 @@ def test_get_trusted_inputs(cmd):
     raw_tx: bytes = bytes.fromhex(
         # Version no (4 bytes little endian)
         "02000000"
+        # Timestamp
+        "00000000"
         # In-counter (varint 1-9 bytes)
         "02"
         # [1] Previous Transaction hash (32 bytes)
@@ -70,6 +72,8 @@ def test_get_trusted_inputs(cmd):
     bip141_raw_tx: bytes = bytes.fromhex(
         # Version no (4 bytes little endian)
         "02000000"
+        # Timestamp
+        "00000000"
         # marker (1 byte) + flag (1 byte)
         "0001"
         # In-counter (varint 1-9 bytes)

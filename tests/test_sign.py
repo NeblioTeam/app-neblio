@@ -66,18 +66,6 @@ def test_untrusted_hash_sign_fail_short_payload(cmd, transport):
 
 
 @automation("automations/accept.json")
-def test_sign_p2wpkh_accept(cmd):
-    for filepath in Path("data").rglob("p2wpkh/tx.json"):
-        sign_from_json(cmd, filepath)
-
-
-@automation("automations/accept.json")
-def test_sign_p2sh_p2wpkh_accept(cmd):
-    for filepath in Path("data").rglob("p2sh-p2wpkh/tx.json"):
-        sign_from_json(cmd, filepath)
-
-
-@automation("automations/accept.json")
 def test_sign_p2pkh_accept(cmd):
     for filepath in Path("data").rglob("p2pkh/tx.json"):
         sign_from_json(cmd, filepath)

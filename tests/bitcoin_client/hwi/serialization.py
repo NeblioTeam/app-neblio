@@ -422,6 +422,7 @@ class CTransaction(object):
     def __init__(self, tx: Optional['CTransaction'] = None) -> None:
         if tx is None:
             self.nVersion = 1
+            self.nTime = 0
             self.vin: List[CTxIn] = []
             self.vout: List[CTxOut] = []
             self.wit = CTxWitness()
@@ -430,6 +431,7 @@ class CTransaction(object):
             self.hash: Optional[str] = None
         else:
             self.nVersion = tx.nVersion
+            self.nTime = tx.nTime
             self.vin = copy.deepcopy(tx.vin)
             self.vout = copy.deepcopy(tx.vout)
             self.nLockTime = tx.nLockTime
@@ -439,6 +441,7 @@ class CTransaction(object):
 
     def deserialize(self, f: Readable) -> None:
         self.nVersion = struct.unpack("<i", f.read(4))[0]
+        self.nTime = struct.unpack("<i", f.read(4))[0]
         self.vin = deser_vector(f, CTxIn)
         flags = 0
         if len(self.vin) == 0:
@@ -460,6 +463,7 @@ class CTransaction(object):
     def serialize_without_witness(self) -> bytes:
         r = b""
         r += struct.pack("<i", self.nVersion)
+        r += struct.pack("<i", self.nTime)
         r += ser_vector(self.vin)
         r += ser_vector(self.vout)
         r += struct.pack("<I", self.nLockTime)
@@ -472,6 +476,7 @@ class CTransaction(object):
             flags |= 1
         r = b""
         r += struct.pack("<i", self.nVersion)
+        r += struct.pack("<i", self.nTime)
         if flags:
             r += ser_vector([])
             r += struct.pack("<B", flags)
@@ -520,5 +525,5 @@ class CTransaction(object):
         return tx
 
     def __repr__(self) -> str:
-        return "CTransaction(nVersion=%i vin=%s vout=%s wit=%s nLockTime=%i)" \
-            % (self.nVersion, repr(self.vin), repr(self.vout), repr(self.wit), self.nLockTime)
+        return "CTransaction(nVersion=%i nTime=%i vin=%s vout=%s wit=%s nLockTime=%i)" \
+            % (self.nVersion, self.nTime, repr(self.vin), repr(self.vout), repr(self.wit), self.nLockTime)

@@ -264,6 +264,7 @@ class BitcoinCommandBuilder:
         p2: int = 0x02 if is_new_transaction else 0x80
 
         cdata: bytes = (tx.nVersion.to_bytes(4, byteorder="little") +
+                        tx.nTime.to_bytes(4, byteorder="little") +
                         ser_compact_size(len(inputs)))
 
         yield self.serialize(cla=self.CLA,
