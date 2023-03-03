@@ -16,15 +16,15 @@ jobs:
 
       - name: Build
         run: |
-          make COIN=neblio && mv bin/ neblio-bin/
+          make COIN=neblio && mv bin/ bitcoin-bin/
           make clean
           make COIN=bitcoin_testnet_legacy && mv bin/ bitcoin-testnet-bin/
 
       - name: Upload Neblio app binary
         uses: actions/upload-artifact@v2
         with:
-          name: neblio-app
-          path: neblio-bin
+          name: bitcoin-app
+          path: bitcoin-bin
 
       - name: Upload Bitcoin Testnet app binary
         uses: actions/upload-artifact@v2
@@ -55,7 +55,7 @@ jobs:
       - name: Download Neblio app binary
         uses: actions/download-artifact@v2
         with:
-          name: neblio-app
+          name: bitcoin-app
           path: tests/bitcoin-bin
 
       - name: Download Bitcoin Testnet app binary
